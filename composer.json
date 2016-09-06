@@ -1,6 +1,6 @@
 {
     "name": "davidkmenta/repo-service-bundle",
-    "description": "Serve Doctrine's repository as a Symfony service",
+    "description": "Declare Doctrine repository as a Symfony service",
     "license": "MIT",
     "authors": [
         {
