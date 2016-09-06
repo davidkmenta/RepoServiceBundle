@@ -70,6 +70,10 @@ acme.repository.custom:
 ```
 That's it! Yes, the trick is in the tag `doctrine.repository` :-) and the logger is injected as you're expecting.
 
+TODOs
+-----
+- Instead of using the method `getMappedEntityName`, declare an entity name through a class annotation.
+
 Disclaimer
 ----------
 Using this bundle is on own risk.
