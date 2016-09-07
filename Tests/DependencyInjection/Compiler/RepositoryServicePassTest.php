@@ -7,6 +7,7 @@ use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use DavidKmenta\RepoServiceBundle\DependencyInjection\Compiler\RepositoryServicePass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 class RepositoryServicePassTest extends \PHPUnit_Framework_TestCase
 {
@@ -81,9 +82,9 @@ class RepositoryServicePassTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame(ClassMetadataFactory::class, $classMetadataFactoryDefinition->getClass());
         $this->assertFalse($classMetadataFactoryDefinition->isPublic());
-        $this->assertSame(
+        $this->assertEquals(
             [
-                ['setEntityManager', [$this->defaultEntityManagerDefinition]],
+                ['setEntityManager', [new Reference('doctrine.orm.default_entity_manager')]],
             ],
             $classMetadataFactoryDefinition->getMethodCalls()
         );
@@ -107,12 +108,12 @@ class RepositoryServicePassTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($ordinaryService->isLazy());
 
         $methodCalls = [
-            ['setEntityManager', [$this->defaultEntityManagerDefinition]],
-            ['setClassMetadataFactory', [$this->containerBuilder->getDefinition('doctrine.class_metadata_factory')]],
+            ['setEntityManager', [new Reference('doctrine.orm.default_entity_manager')]],
+            ['setClassMetadataFactory', [new Reference('doctrine.class_metadata_factory')]],
         ];
 
-        $this->assertSame($methodCalls, $repositoryServiceOne->getMethodCalls());
-        $this->assertSame($methodCalls, $repositoryServiceTwo->getMethodCalls());
+        $this->assertEquals($methodCalls, $repositoryServiceOne->getMethodCalls());
+        $this->assertEquals($methodCalls, $repositoryServiceTwo->getMethodCalls());
         $this->assertEmpty($ordinaryService->getMethodCalls());
     }
 

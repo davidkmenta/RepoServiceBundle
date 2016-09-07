@@ -6,9 +6,13 @@ use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
+use Symfony\Component\DependencyInjection\Reference;
 
 class RepositoryServicePass implements CompilerPassInterface
 {
+    const DOCTRINE_REPOSITORY_TAG = 'doctrine.repository';
+    const CLASS_METADATA_FACTORY_ID = 'doctrine.class_metadata_factory';
+
     /**
      * @var ContainerBuilder
      */
@@ -22,7 +26,7 @@ class RepositoryServicePass implements CompilerPassInterface
             return;
         }
 
-        $taggedRepositories = $this->container->findTaggedServiceIds('doctrine.repository');
+        $taggedRepositories = $this->container->findTaggedServiceIds(self::DOCTRINE_REPOSITORY_TAG);
 
         if (count($taggedRepositories)) {
             $this->defineClassMetadataFactory();
@@ -35,15 +39,15 @@ class RepositoryServicePass implements CompilerPassInterface
 
     private function defineClassMetadataFactory()
     {
-        $classMetadataFactoryDefinition = $this->container->setDefinition(
-            'doctrine.class_metadata_factory',
-            new Definition(ClassMetadataFactory::class)
+        $classMetadataFactoryDefinition = $this->container->register(
+            self::CLASS_METADATA_FACTORY_ID,
+            ClassMetadataFactory::class
         );
 
         $classMetadataFactoryDefinition
             ->addMethodCall(
                 'setEntityManager',
-                [$this->container->getDefinition($this->getDefaultEntityManagerId())]
+                [new Reference($this->getDefaultEntityManagerId())]
             )
             ->setPublic(false);
     }
@@ -58,11 +62,11 @@ class RepositoryServicePass implements CompilerPassInterface
         $repositoryDefinition
             ->addMethodCall(
                 'setEntityManager',
-                [$this->container->getDefinition($this->getDefaultEntityManagerId())]
+                [new Reference($this->getDefaultEntityManagerId())]
             )
             ->addMethodCall(
                 'setClassMetadataFactory',
-                [$this->container->getDefinition('doctrine.class_metadata_factory')]
+                [new Reference(self::CLASS_METADATA_FACTORY_ID)]
             )
             ->setLazy(true);
     }
