@@ -2,10 +2,10 @@
 
 namespace DavidKmenta\RepoServiceBundle\DependencyInjection\Compiler;
 
+use DavidKmenta\RepoServiceBundle\Doctrine\ORM\Manager\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Reference;
 
 class RepositoryServicePass implements CompilerPassInterface
@@ -29,12 +29,31 @@ class RepositoryServicePass implements CompilerPassInterface
         $taggedRepositories = $this->container->findTaggedServiceIds(self::DOCTRINE_REPOSITORY_TAG);
 
         if (count($taggedRepositories)) {
+            $this->defineEntityManager($taggedRepositories);
             $this->defineClassMetadataFactory();
         }
 
         foreach ($taggedRepositories as $repositoryId => $tags) {
             $this->processRepositoryService($repositoryId);
         }
+    }
+
+    /**
+     * @param array $taggedRepositories
+     */
+    private function defineEntityManager(array $taggedRepositories)
+    {
+        $this->container->setParameter('doctrine.orm.entity_manager.class', EntityManager::class);
+
+        $repositories = [];
+        foreach ($taggedRepositories as $repositoryId => $tags) {
+            $repositories[$repositoryId] = new Reference($repositoryId);
+        }
+
+        $entityManagerDefinition = $this->container->getDefinition($this->getDefaultEntityManagerId());
+        $entityManagerDefinition
+            ->setClass(EntityManager::class)
+            ->addMethodCall('setRepositories', [$repositories]);
     }
 
     private function defineClassMetadataFactory()

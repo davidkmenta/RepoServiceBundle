@@ -35,5 +35,5 @@ abstract class EntityRepository extends BaseEntityRepository
     /**
      * @return string
      */
-    abstract protected function getMappedEntityName();
+    abstract public function getMappedEntityName();
 }

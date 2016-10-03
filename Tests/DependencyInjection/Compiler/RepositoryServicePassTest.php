@@ -2,7 +2,7 @@
 
 namespace DavidKmenta\RepoServiceBundle\Tests\DependencyInjection\Compiler;
 
-use Doctrine\ORM\EntityManager;
+use DavidKmenta\RepoServiceBundle\Doctrine\ORM\Manager\EntityManager;
 use Doctrine\ORM\Mapping\ClassMetadataFactory;
 use DavidKmenta\RepoServiceBundle\DependencyInjection\Compiler\RepositoryServicePass;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -65,6 +65,35 @@ class RepositoryServicePassTest extends \PHPUnit_Framework_TestCase
         $this->doctrineRepositoryPass->process($this->containerBuilder);
 
         $this->assertFalse($this->containerBuilder->has('doctrine.class_metadata_factory'));
+    }
+
+    public function testShouldOverrideDefaultEntityManangerAndSetRepositoriesToIt()
+    {
+        $this->setDefaultEntityManagerToContainer();
+
+        $this->repositoryServiceOne->addTag('doctrine.repository');
+        $this->repositoryServiceTwo->addTag('doctrine.repository');
+
+        $this->doctrineRepositoryPass->process($this->containerBuilder);
+
+        $entityManagerDefinition = $this->containerBuilder->getDefinition('doctrine.orm.default_entity_manager');
+
+        $this->assertSame(
+            EntityManager::class,
+            $this->containerBuilder->getParameter('doctrine.orm.entity_manager.class')
+        );
+        $this->assertSame(EntityManager::class, $entityManagerDefinition->getClass());
+        $this->assertEquals(
+            [
+                ['setRepositories', [
+                    [
+                        'repository.service.one' => new Reference('repository.service.one'),
+                        'repository.service.two' => new Reference('repository.service.two'),
+                    ]
+                ]],
+            ],
+            $entityManagerDefinition->getMethodCalls()
+        );
     }
 
     public function testShouldDefineClassMetadataFactoryIfAnyTaggedServicesExist()

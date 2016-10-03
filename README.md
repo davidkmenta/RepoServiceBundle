@@ -34,6 +34,7 @@ public function registerBundles()
 
 Documentation
 -------------
+- Note: This bundle overrides the `doctrine.orm.entity_manager.class` option and setups an own entity manager.
 - First of all, you have to create or update your repository class. A repository class has to extend the class `DavidKmenta\RepoServiceBundle\Repository\EntityRepository`.
 - Now you have to implement a method `getMappedEntityName` which tells to the EntityManager what entity is managed by this repository. The best practise is, return a fully qualified class name:
 
@@ -53,7 +54,7 @@ class CustomRepository extends EntityRepository
         // ...
     }
     
-    protected function getMappedEntityName()
+    public function getMappedEntityName()
     {
         return CustomEntity::class;
     }
@@ -73,7 +74,7 @@ That's it! Yes, the trick is in the tag `doctrine.repository` :-) and the logger
 TODOs and known issues
 -----
 - Instead of using the method `getMappedEntityName`, declare an entity name through a class annotation.
-- Repositories can't be used as a value of entity's `repositoryClass` attribute.
+- A custom entity manager isn't supported.
 
 Disclaimer
 ----------
